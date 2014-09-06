@@ -58,9 +58,9 @@ attr_accessor :player
       show_current_description
       if room == :redroom
         # if you enter redroom, new instance of class Monster created, param is random damage
-        @monster = Minotaur.new(rand(10))
+        @minotaur = Monster.new(rand(10))
         puts "Your health before the minotaur was #{@player.health}"
-        post_monster_health(@monster.does_damage, @player.health)
+        post_monster_health(@minotaur.does_damage, @player.health)
       elsif room == :goldroom
         abort"YOU WON! You can take as much gold as you want! Congrats!"
       end
@@ -96,7 +96,7 @@ attr_accessor :player
     end
   end
 
-  class Minotaur
+  class Monster
     attr_accessor :damage
 
     def initialize(damage)
@@ -116,7 +116,7 @@ end
 
 
 # Welcome
-puts "Hello, you are trapped in a labrynth, see if you can get out!"
+puts "Hello, you are trapped in a labyrinth, see if you can get out!"
 print "What is your name? > "
 new_player = gets.chomp
 
