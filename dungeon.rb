@@ -3,15 +3,14 @@
 # Classes for Game
 ###############################
 
-# Creating Dungeon Class
 
+# Creating Dungeon Class
 class Dungeon
 attr_accessor :player
 
   def initialize(player_name)
     @player = Player.new(player_name, 20)
-    puts @player.class
-    puts @player.health # it appears to return a value here, not nil.
+    puts "Your starting health is #{@player.health} points"
     @rooms = []
 
   end
@@ -28,7 +27,6 @@ attr_accessor :player
   end
 
   def show_current_description
-    # puts "DEBUG show_current player location " + @player.location.inspect
     puts find_room_in_dungeon(@player.location).full_description
   end
 
@@ -37,22 +35,33 @@ attr_accessor :player
   end
 
   def find_room_in_direction(direction)
-    # puts "DEBUG find_room starting location " + @player.location.inspect
     find_room_in_dungeon(@player.location).connections[direction]
   end
+
+  # Method wich subtracts damage from player health.
+  def post_monster_health(damagereturnfromminotaur, currentplayerhealth)
+    currentplayerhealth = currentplayerhealth - damagereturnfromminotaur
+    @player.health = currentplayerhealth + 1
+              # had to add one so players don't get mad about
+              # turn taking away 1 health point AND meeting monster
+  end
+
 
   ######## GOOOO! Game driver method?
   def go(direction)
     # we don't want to assign players location to nil, want to keep it the same.
     room = find_room_in_direction(direction)
-    # puts "DEBUG " + room.inspect
 
     if room
       puts "You go " + direction.to_s
       @player.location = room
-      # puts "DEBUG #{room.class}"
       show_current_description
-      if room == :goldroom
+      if room == :redroom
+        # if you enter redroom, new instance of class Monster created, param is random damage
+        @monster = Minotaur.new(rand(10))
+        puts "Your health before the minotaur was #{@player.health}"
+        post_monster_health(@monster.does_damage, @player.health)
+      elsif room == :goldroom
         abort"YOU WON! You can take as much gold as you want! Congrats!"
       end
     else
@@ -61,11 +70,11 @@ attr_accessor :player
 
   end
 
-  #stores values about player and room
+  # Stores values about player and room
 
   class Player
     attr_accessor :name, :location, :health
-        # note, health is not working yet...
+
     def initialize(player_name, health)
       @name = player_name
       @health = health
@@ -87,11 +96,27 @@ attr_accessor :player
     end
   end
 
+  class Minotaur
+    attr_accessor :damage
+
+    def initialize(damage)
+      @damage = damage
+    end
+
+    # Text for damage message, returning damage as value
+    def does_damage
+      puts "You encounter the dreadful minotaur!"
+      puts "The minotaur takes away #{@damage} health points."
+      return @damage
+    end
+
+  end
+
 end
 
 
 # Welcome
-puts "Hello, you are trapped in a dungeon, see if you can get out!"
+puts "Hello, you are trapped in a labrynth, see if you can get out!"
 print "What is your name? > "
 new_player = gets.chomp
 
@@ -125,17 +150,17 @@ my_dungeon.start(:largecave)
 ###############################
 
 
-# still not working
-puts my_dungeon.player.health
 while my_dungeon.player.health > 0
   puts "Would you like to go north, south, east, or west?"
   print "> "
   which_way = gets.chomp.to_sym
   my_dungeon.go(which_way)
-  my_dungeon.player.health -= 1
-  puts "your health is now #{my_dungeon.player.health}"
   if which_way == :exit || which_way == :quit
     abort"Bye bye"
   end
+  my_dungeon.player.health -= 1
+  puts "your health is now #{my_dungeon.player.health}"
 
 end
+
+puts "You died!"
