@@ -39,15 +39,21 @@ attr_accessor :player
   end
 
   # Method wich subtracts damage from player health.
-  def post_monster_health(damagereturnfromminotaur, currentplayerhealth)
-    currentplayerhealth = currentplayerhealth - damagereturnfromminotaur
-    @player.health = currentplayerhealth + 1
-              # had to add one so players don't get mad about
-              # turn taking away 1 health point AND meeting monster
+  def post_monster_health(monster_damage, current_health)
+    current_health = current_health - monster_damage
+    @player.health = current_health + 1
+          # had to add one so players don't get mad about
+          # turn taking away 1 health point AND meeting monster
+  end
+
+  # Method which adds health to player
+  def add_health(health_plus, current_health)
+    current_health = health_plus + current_health
+    @player.health = current_health + 1
   end
 
 
-  ######## GOOOO! Game driver method?
+  ######## GOOOO! Game driver method
   def go(direction)
     # we don't want to assign players location to nil, want to keep it the same.
     room = find_room_in_direction(direction)
@@ -56,11 +62,16 @@ attr_accessor :player
       puts "You go " + direction.to_s
       @player.location = room
       show_current_description
+      # When player enters certain rooms, certain events happen
       if room == :redroom
         # if you enter redroom, new instance of class Monster created, param is random damage
-        @minotaur = Monster.new(rand(10))
-        puts "Your health before the minotaur was #{@player.health}"
+        @minotaur = Monster.new("minotaur", rand(5..12))
+        puts "Your health before the monster is #{@player.health}"
         post_monster_health(@minotaur.does_damage, @player.health)
+      elsif room == :toyroom
+        @ball_string = Healthpack.new("ball of string", 5)
+        puts "DEBUG" + @ball_string.inspect
+        add_health(@ball_string.restores_health, @player.health)
       elsif room == :goldroom
         abort"YOU WON! You can take as much gold as you want! Congrats!"
       end
@@ -96,20 +107,36 @@ attr_accessor :player
     end
   end
 
+  # note, maybe add name attribute and then use it in here
   class Monster
-    attr_accessor :damage
+    attr_accessor :damage, :name
 
-    def initialize(damage)
+    def initialize(name, damage)
       @damage = damage
+      @name = name
     end
 
     # Text for damage message, returning damage as value
     def does_damage
-      puts "You encounter the dreadful minotaur!"
-      puts "The minotaur takes away #{@damage} health points."
+      puts "You encounter the dreadful #{@name}!"
+      puts "The #{@name} takes away #{@damage} health points."
       return @damage
     end
+  end
 
+  class Healthpack
+    attr_accessor :healthiness, :pack_name
+
+    def initialize(pack_name, healthiness)
+      @pack_name = pack_name
+      @healthiness = healthiness
+    end
+
+    def restores_health
+      puts "You found a #{@pack_name}."
+      puts "The #{@pack_name} restores #{@healthiness} points."
+      return @healthiness
+    end
   end
 
 end
@@ -122,7 +149,7 @@ new_player = gets.chomp
 
 
 ###############################
-# Object my_dungeon creation
+# Gameboard setup
 ###############################
 
 
@@ -137,10 +164,11 @@ my_dungeon.add_room(:smallcave, "Small Cave", "a small, claustrophobic cave", {:
 
 my_dungeon.add_room(:goldroom, "Gold Room", "a room filled with gold!", {:south => :smallcave})
 
-my_dungeon.add_room(:blueroom, "Blue Room", "a room filled with weird blue light", {:north => :largecave})
+my_dungeon.add_room(:blueroom, "Blue Room", "a room filled with weird blue light", {:north => :largecave, :east => :toyroom})
 
-my_dungeon.add_room(:redroom, "Red Room", "a room filled with terrible red light", {:west => :largecave})
+my_dungeon.add_room(:redroom, "Red Room", "a room filled with terrible red light", {:west => :largecave, :south => :toyroom})
 
+my_dungeon.add_room(:toyroom, "Toy Room", "a room filled with random toys", {:north => :redroom, :west => :blueroom})
 # Start dungeon by placing player into large cave
 my_dungeon.start(:largecave)
 
