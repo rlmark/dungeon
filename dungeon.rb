@@ -1,4 +1,3 @@
-
 ###############################
 # Classes for Game
 ###############################
@@ -40,11 +39,8 @@ attr_accessor :player
     # we now have a value which is a new location
   end
 
-
-
   ######## GOOOO! Game driver method
   def go(direction)
-    # we don't want to assign players location to nil, want to keep it the same.
     room = find_room_in_direction(direction)
 
     if room
@@ -70,7 +66,6 @@ attr_accessor :player
   end
 
   # Stores values about player and room
-
   class Player
     attr_accessor :name, :location, :health
 
@@ -119,9 +114,6 @@ attr_accessor :player
             # turn taking away 1 health point AND meeting monster
     end
   end
-
-  # For sphinx create Riddler class that inherits from Monster class here.
-  # class Riddler < Monster
 
   class Healthpack
     attr_accessor :healthiness, :pack_name
