@@ -16,8 +16,8 @@ attr_accessor :player
   end
 
   # method adds rooms to dungeon
-  def add_room(reference, name, description, connections)
-    @rooms << Room.new(reference, name, description, connections)
+  def add_room(ref, name, descr, connect)
+    @rooms << Room.new(ref, name, descr, connect)
   end
 
   # method places user at start of game
@@ -29,28 +29,17 @@ attr_accessor :player
   def show_current_description
     puts find_room_in_dungeon(@player.location).full_description
   end
-
+                          # reference is @player.location from above
   def find_room_in_dungeon(reference)
     @rooms.detect {|room| room.reference == reference}
+    # this is to say, find the room in the rooms array that matches what we are currently in.
   end
 
   def find_room_in_direction(direction)
     find_room_in_dungeon(@player.location).connections[direction]
+    # we now have a value which is a new location
   end
 
-  # Method wich subtracts damage from player health.
-  def post_monster_health(monster_damage, current_health)
-    current_health = current_health - monster_damage
-    @player.health = current_health + 1
-          # had to add one so players don't get mad about
-          # turn taking away 1 health point AND meeting monster
-  end
-
-  # Method which adds health to player
-  def add_health(health_plus, current_health)
-    current_health = health_plus + current_health
-    @player.health = current_health + 1
-  end
 
 
   ######## GOOOO! Game driver method
@@ -65,13 +54,12 @@ attr_accessor :player
       # When player enters certain rooms, certain events happen
       if room == :redroom
         # if you enter redroom, new instance of class Monster created, param is random damage
-        @minotaur = Monster.new("minotaur", rand(5..12))
+        minotaur = Monster.new("minotaur", rand(5..12))
         puts "Your health before the monster is #{@player.health}"
-        post_monster_health(@minotaur.does_damage, @player.health)
+        @player.health = minotaur.post_monster_health(minotaur.does_damage, @player.health)
       elsif room == :toyroom
-        @ball_string = Healthpack.new("ball of string", 5)
-        puts "DEBUG" + @ball_string.inspect
-        add_health(@ball_string.restores_health, @player.health)
+        ball_string = Healthpack.new("ball of string", 5)
+        @player.health = ball_string.add_health(ball_string.restores_health, @player.health)
       elsif room == :goldroom
         abort"YOU WON! You can take as much gold as you want! Congrats!"
       end
@@ -122,7 +110,18 @@ attr_accessor :player
       puts "The #{@name} takes away #{@damage} health points."
       return @damage
     end
+
+    # Method wich subtracts damage from player health.
+    def post_monster_health(monster_damage, current_health)
+      current_health = current_health - monster_damage
+      current_health + 1
+            # had to add one so players don't get mad about
+            # turn taking away 1 health point AND meeting monster
+    end
   end
+
+  # For sphinx create Riddler class that inherits from Monster class here.
+  # class Riddler < Monster
 
   class Healthpack
     attr_accessor :healthiness, :pack_name
@@ -137,6 +136,13 @@ attr_accessor :player
       puts "The #{@pack_name} restores #{@healthiness} points."
       return @healthiness
     end
+
+    # Method which adds health to player
+    def add_health(health_plus, current_health)
+      current_health = health_plus + current_health
+      current_health + 1
+    end
+
   end
 
 end
@@ -181,7 +187,7 @@ my_dungeon.start(:largecave)
 while my_dungeon.player.health > 0
   puts "Would you like to go north, south, east, or west?"
   print "> "
-  which_way = gets.chomp.to_sym
+  which_way = gets.chomp.downcase.to_sym
   my_dungeon.go(which_way)
   if which_way == :exit || which_way == :quit
     abort"Bye bye"
